@@ -1,14 +1,39 @@
 # Granada Conference 2026 — Scanference
 
-A client-side only QR code networking app built for Granada Conference 2026, branded with Acorn Technology theming.
+A client-side only QR code networking game built for Granada Conference 2026, branded with Acorn Technology theming.
 
-## How it works
+## The Game
 
-1. On first visit the user picks their name from a pre-loaded attendee list (`public/attendees.json`).
-2. Their name is stored in `localStorage` and rendered as a QR code on the home page.
-3. They tap **Scan Someone** and point their camera at another attendee's QR code.
-4. The app looks up the key `"yourName+theirName"` in `public/lookup.json` and displays the result — a free-text string defined ahead of the event.
-5. No backend — everything runs in the browser.
+Each attendee gets a personal QR code (their name). Every pair of attendees shares a unique trivia question and a secret keyword answer. The goal is to find and match with as many people as possible.
+
+### Rules
+
+1. **Find someone** — scan their QR code with your camera (**Scan Someone**), or select their name from the **Look Up** page if you don't have camera access.
+2. **Answer the question** — a trivia question appears (e.g. *"East, west, south and ____?"*). Type your answer.
+3. **Score a point** — if the answer is correct you earn **+1 point** and that person is marked as **Done** for you.
+4. **Wrong answer?** — you can keep trying, no penalty.
+5. **Already matched?** — if you've already answered a pair, the app tells you and no extra points are awarded.
+6. **Both directions** — each person must independently answer to earn their own point. Scanning someone gets you your point; they need to scan you back (or look up your name) to earn theirs.
+7. **Score is personal** — points and completed matches are saved in `localStorage` per user name on your device. Switching to a different name loads that person's score.
+
+### Lookup data format
+
+Each pair has one entry in `public/lookup.json`:
+
+```json
+{
+  "Alice Smith+Bob Jones": {
+    "topic": "East, west, south and ____?",
+    "keyword": "North"
+  }
+}
+```
+
+- **topic** — the question shown when the pair is scanned
+- **keyword** — the correct answer (checked case-insensitively)
+- Key order doesn't matter — the app tries both `A+B` and `B+A` at runtime
+
+---
 
 ## Setup before an event
 
@@ -17,25 +42,27 @@ A client-side only QR code networking app built for Granada Conference 2026, bra
    ["Alice Smith", "Bob Jones", "Carol White"]
    ```
 
-2. Populate `public/lookup.json` with the desired pairings:
-   ```json
-   {
-     "Alice Smith+Bob Jones": "Alice and Bob both work in ML — great intro!",
-     "Bob Jones+Alice Smith": "Bob scanned Alice — she wrote the keynote paper."
-   }
+2. Run the generator to create one unique question per pair:
+   ```bash
+   npm run generate-lookup
    ```
-   Keys are directional (`scanner+scanned`). Add both directions if needed.
+   This writes placeholder `topic`/`keyword` entries for every pair into `public/lookup.json`. The question bank in `scripts/generate-lookup.js` is shuffled randomly each run.
 
-3. Deploy — GitHub Actions builds and publishes to GitHub Pages on every push to `main`.
+3. Edit `public/lookup.json` to customise any topics or keywords you want personalised.
+
+4. Deploy — GitHub Actions builds and publishes to GitHub Pages on every push to `main`.
+
+---
 
 ## Commands
 
 ```bash
-npm install       # install dependencies
-npm run dev       # start dev server at http://localhost:5173/scanference/
-npm run build     # type-check + build to dist/
-npm run preview   # preview the production build locally
-npm run lint      # run ESLint
+npm install            # install dependencies
+npm run dev            # start dev server at http://localhost:5173/scanference/
+npm run build          # type-check + build to dist/
+npm run preview        # preview the production build locally
+npm run lint           # run ESLint
+npm run generate-lookup  # generate lookup.json from attendees.json
 ```
 
 ## Deployment

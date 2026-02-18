@@ -1,22 +1,42 @@
 {
-  "Alice Smith+Bob Jones": "You've been matched with Bob Jones!",
-  "Alice Smith+Carol White": "You've been matched with Carol White!",
-  "Alice Smith+David Brown": "You've been matched with David Brown!",
-  "Alice Smith+Eva Martinez": "You've been matched with Eva Martinez!",
-  "Bob Jones+Alice Smith": "You've been matched with Alice Smith!",
-  "Bob Jones+Carol White": "You've been matched with Carol White!",
-  "Bob Jones+David Brown": "You've been matched with David Brown!",
-  "Bob Jones+Eva Martinez": "You've been matched with Eva Martinez!",
-  "Carol White+Alice Smith": "You've been matched with Alice Smith!",
-  "Carol White+Bob Jones": "You've been matched with Bob Jones!",
-  "Carol White+David Brown": "You've been matched with David Brown!",
-  "Carol White+Eva Martinez": "You've been matched with Eva Martinez!",
-  "David Brown+Alice Smith": "You've been matched with Alice Smith!",
-  "David Brown+Bob Jones": "You've been matched with Bob Jones!",
-  "David Brown+Carol White": "You've been matched with Carol White!",
-  "David Brown+Eva Martinez": "You've been matched with Eva Martinez!",
-  "Eva Martinez+Alice Smith": "You've been matched with Alice Smith!",
-  "Eva Martinez+Bob Jones": "You've been matched with Bob Jones!",
-  "Eva Martinez+Carol White": "You've been matched with Carol White!",
-  "Eva Martinez+David Brown": "You've been matched with David Brown!"
+  "Alice Smith+Bob Jones": {
+    "topic": "An octopus has ___ arms?",
+    "keyword": "8"
+  },
+  "Alice Smith+Carol White": {
+    "topic": "A rainbow has ___ colours?",
+    "keyword": "7"
+  },
+  "Alice Smith+David Brown": {
+    "topic": "Water freezes at ___ degrees Celsius?",
+    "keyword": "0"
+  },
+  "Alice Smith+Eva Martinez": {
+    "topic": "H2O is the chemical formula for ____?",
+    "keyword": "Water"
+  },
+  "Bob Jones+Carol White": {
+    "topic": "100 centimetres = 1 ____?",
+    "keyword": "Metre"
+  },
+  "Bob Jones+David Brown": {
+    "topic": "Half of 50 is ____?",
+    "keyword": "25"
+  },
+  "Bob Jones+Eva Martinez": {
+    "topic": "Spring, summer, autumn and ____?",
+    "keyword": "Winter"
+  },
+  "Carol White+David Brown": {
+    "topic": "A spider has ___ legs?",
+    "keyword": "8"
+  },
+  "Carol White+Eva Martinez": {
+    "topic": "Monday, Tuesday, Wednesday — what comes next?",
+    "keyword": "Thursday"
+  },
+  "David Brown+Eva Martinez": {
+    "topic": "The square root of 9 is ____?",
+    "keyword": "3"
+  }
 }

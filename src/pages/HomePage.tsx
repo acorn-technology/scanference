@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Autocomplete,
   Box,
@@ -12,31 +12,20 @@ import {
   Typography,
 } from '@mui/material'
 import QrCode2Icon from '@mui/icons-material/QrCode2'
+import SearchIcon from '@mui/icons-material/Search'
 import EditIcon from '@mui/icons-material/Edit'
 import QRCode from 'react-qr-code'
 import { useNavigate } from 'react-router-dom'
 import { useUserName } from '../hooks/useUserName'
-
-function useAttendees() {
-  const [attendees, setAttendees] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}attendees.json`)
-      .then((r) => r.json())
-      .then((data: string[]) => setAttendees(data))
-      .catch(() => setAttendees([]))
-      .finally(() => setLoading(false))
-  }, [])
-
-  return { attendees, loading }
-}
+import { useAttendees } from '../hooks/useAttendees'
+import { useScore } from '../hooks/useScore'
 
 export default function HomePage() {
   const [name, setName] = useUserName()
   const [draft, setDraft] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
   const { attendees, loading } = useAttendees()
+  const { score, completedCount } = useScore(name)
   const navigate = useNavigate()
 
   const showPicker = !name || editing
@@ -62,8 +51,9 @@ export default function HomePage() {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Search your name"
+                label="Select your name"
                 sx={{ bgcolor: 'white', borderRadius: 1 }}
+                inputProps={{ ...params.inputProps, readOnly: true }}
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
@@ -119,6 +109,10 @@ export default function HomePage() {
           </Tooltip>
         </Box>
 
+        <Typography variant="body2" color="text.secondary">
+          {completedCount} {completedCount === 1 ? 'match' : 'matches'} found &mdash; {score} pts
+        </Typography>
+
         <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
           <QRCode value={name} size={220} />
         </Paper>
@@ -127,15 +121,26 @@ export default function HomePage() {
           Show this to others so they can scan you.
         </Typography>
 
-        <Button
-          variant="contained"
-          size="large"
-          startIcon={<QrCode2Icon />}
-          onClick={() => navigate('/scan')}
-          sx={{ mt: 1, px: 5, py: 1.5 }}
-        >
-          Scan Someone
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<QrCode2Icon />}
+            onClick={() => navigate('/scan')}
+            sx={{ px: 3, py: 1.5 }}
+          >
+            Scan Someone
+          </Button>
+          <Button
+            variant="outlined"
+            size="large"
+            startIcon={<SearchIcon />}
+            onClick={() => navigate('/lookup')}
+            sx={{ px: 3, py: 1.5 }}
+          >
+            Look Up
+          </Button>
+        </Box>
 
       </Box>
     </Container>

@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   CircularProgress,
@@ -13,16 +14,16 @@ import {
   Typography,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import { useZxing } from 'react-zxing'
-import type { Result } from '@zxing/library'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { useNavigate } from 'react-router-dom'
 import { useUserName } from '../hooks/useUserName'
 import { useScore } from '../hooks/useScore'
+import { useAttendees } from '../hooks/useAttendees'
 
 type LookupResult = { topic: string; keyword: string }
 
-type ScanState =
-  | { status: 'scanning' }
+type PageState =
+  | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'question'; result: LookupResult; scannedName: string; wrongAttempt: boolean }
   | { status: 'correct'; scannedName: string; keyword: string }
@@ -37,79 +38,62 @@ async function lookupPair(myName: string, scannedName: string): Promise<LookupRe
   return table[`${myName}+${scannedName}`] ?? table[`${scannedName}+${myName}`] ?? null
 }
 
-export default function ScanPage() {
+export default function LookupPage() {
   const [userName] = useUserName()
   const navigate = useNavigate()
   const { score, addPoint, isCompleted } = useScore(userName)
-  const [scanState, setScanState] = useState<ScanState>({ status: 'scanning' })
-  const [paused, setPaused] = useState(false)
+  const { attendees, loading } = useAttendees()
+  const [pageState, setPageState] = useState<PageState>({ status: 'idle' })
+  const [selectedName, setSelectedName] = useState<string | null>(null)
   const [answer, setAnswer] = useState('')
 
-  const handleFound = useCallback(
-    async (scannedName: string) => {
-      setScanState({ status: 'loading' })
-      try {
-        if (isCompleted(userName ?? '', scannedName)) {
-          setScanState({ status: 'already_done', scannedName })
-          return
-        }
-        const result = await lookupPair(userName ?? '', scannedName)
-        setScanState(
-          result !== null
-            ? { status: 'question', result, scannedName, wrongAttempt: false }
-            : { status: 'not_found' },
-        )
-      } catch (err) {
-        setScanState({
-          status: 'error',
-          message: err instanceof Error ? err.message : 'Lookup failed',
-        })
+  const handleLookup = async () => {
+    if (!selectedName) return
+    setPageState({ status: 'loading' })
+    try {
+      if (isCompleted(userName ?? '', selectedName)) {
+        setPageState({ status: 'already_done', scannedName: selectedName })
+        return
       }
-    },
-    [userName, isCompleted],
-  )
-
-  const onDecodeResult = useCallback(
-    async (result: Result) => {
-      if (paused) return
-      setPaused(true)
-      await handleFound(result.getText())
-    },
-    [paused, handleFound],
-  )
+      const result = await lookupPair(userName ?? '', selectedName)
+      setPageState(
+        result !== null
+          ? { status: 'question', result, scannedName: selectedName, wrongAttempt: false }
+          : { status: 'not_found' },
+      )
+    } catch (err) {
+      setPageState({
+        status: 'error',
+        message: err instanceof Error ? err.message : 'Lookup failed',
+      })
+    }
+  }
 
   const handleSubmitAnswer = () => {
-    if (scanState.status !== 'question') return
-    const { result, scannedName } = scanState
+    if (pageState.status !== 'question') return
+    const { result, scannedName } = pageState
     if (answer.trim().toLowerCase() === result.keyword.toLowerCase()) {
       addPoint(userName ?? '', scannedName)
-      setScanState({ status: 'correct', scannedName, keyword: result.keyword })
+      setPageState({ status: 'correct', scannedName, keyword: result.keyword })
       setAnswer('')
     } else {
-      setScanState({ ...scanState, wrongAttempt: true })
+      setPageState({ ...pageState, wrongAttempt: true })
     }
   }
 
   const handleClose = () => {
     setAnswer('')
-    setPaused(false)
-    setScanState({ status: 'scanning' })
+    setSelectedName(null)
+    setPageState({ status: 'idle' })
   }
 
-  const { ref } = useZxing({
-    paused,
-    onDecodeResult,
-    onError: (err) => {
-      if (err instanceof Error && err.message.includes('No MultiFormat')) return
-      console.warn('Scanner error:', err)
-    },
-  })
-
   const isDialogOpen =
-    scanState.status === 'question' ||
-    scanState.status === 'correct' ||
-    scanState.status === 'already_done' ||
-    scanState.status === 'not_found'
+    pageState.status === 'question' ||
+    pageState.status === 'correct' ||
+    pageState.status === 'already_done' ||
+    pageState.status === 'not_found'
+
+  const otherAttendees = attendees.filter((a) => a !== userName)
 
   return (
     <Container maxWidth="sm">
@@ -119,7 +103,7 @@ export default function ScanPage() {
             Back
           </Button>
           <Typography variant="h6" fontWeight="bold">
-            Scan QR Code
+            Look Up Name
           </Typography>
         </Box>
         <Typography variant="body1" fontWeight="bold" color="primary">
@@ -127,42 +111,71 @@ export default function ScanPage() {
         </Typography>
       </Box>
 
-      {scanState.status === 'error' && (
+      {pageState.status === 'error' && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {scanState.message}
+          {pageState.message}
         </Alert>
       )}
 
-      <Box position="relative" sx={{ borderRadius: 2, overflow: 'hidden', bgcolor: 'black' }}>
-        <video
-          ref={ref as React.RefObject<HTMLVideoElement>}
-          style={{ width: '100%', display: 'block' }}
+      <Box display="flex" gap={1} alignItems="center" mt={2}>
+        <Autocomplete
+          options={otherAttendees}
+          loading={loading}
+          value={selectedName}
+          onChange={(_, value) => setSelectedName(value)}
+          fullWidth
+          renderOption={(props, option) => {
+            const { key, ...rest } = props as { key: string } & React.HTMLAttributes<HTMLLIElement>
+            const done = isCompleted(userName ?? '', option)
+            return (
+              <li key={key} {...rest}>
+                <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
+                  <Typography sx={{ color: done ? 'text.disabled' : 'text.primary' }}>
+                    {option}
+                  </Typography>
+                  {done && <CheckCircleIcon color="success" fontSize="small" />}
+                </Box>
+              </li>
+            )
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Select a name"
+              sx={{ bgcolor: 'white', borderRadius: 1 }}
+              inputProps={{ ...params.inputProps, readOnly: true }}
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {loading && <CircularProgress size={18} />}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              }}
+            />
+          )}
         />
-        {scanState.status === 'loading' && (
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: 'rgba(0,0,0,0.5)',
-            }}
-          >
-            <CircularProgress sx={{ color: 'white' }} />
-          </Box>
-        )}
+        <Button
+          variant="contained"
+          size="large"
+          onClick={handleLookup}
+          disabled={!selectedName || pageState.status === 'loading'}
+          sx={{ whiteSpace: 'nowrap' }}
+        >
+          {pageState.status === 'loading' ? <CircularProgress size={20} color="inherit" /> : 'Look up'}
+        </Button>
       </Box>
 
       <Dialog open={isDialogOpen} maxWidth="xs" fullWidth>
-        {scanState.status === 'question' && (
+        {pageState.status === 'question' && (
           <>
             <DialogTitle>Match Found!</DialogTitle>
             <DialogContent>
               <Typography variant="body1" sx={{ mb: 3 }}>
-                {scanState.result.topic}
+                {pageState.result.topic}
               </Typography>
-              {scanState.wrongAttempt && (
+              {pageState.wrongAttempt && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   Wrong answer, try again!
                 </Alert>
@@ -186,12 +199,12 @@ export default function ScanPage() {
           </>
         )}
 
-        {scanState.status === 'correct' && (
+        {pageState.status === 'correct' && (
           <>
             <DialogTitle>+1 Point!</DialogTitle>
             <DialogContent>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                Correct! {scanState.scannedName} is now Done.
+                Correct! {pageState.scannedName} is now Done.
               </Typography>
               <Box
                 sx={{
@@ -206,7 +219,7 @@ export default function ScanPage() {
                   fontSize: '1.4rem',
                 }}
               >
-                {scanState.keyword}
+                {pageState.keyword}
               </Box>
               <Typography variant="h4" textAlign="center" fontWeight="bold" sx={{ mt: 2 }}>
                 {score} pts
@@ -214,19 +227,19 @@ export default function ScanPage() {
             </DialogContent>
             <DialogActions>
               <Button variant="contained" onClick={handleClose}>
-                Scan Next
+                Look up Another
               </Button>
               <Button onClick={() => navigate('/')}>Go Home</Button>
             </DialogActions>
           </>
         )}
 
-        {scanState.status === 'already_done' && (
+        {pageState.status === 'already_done' && (
           <>
             <DialogTitle>Already Done</DialogTitle>
             <DialogContent>
               <Typography variant="body1" color="text.secondary">
-                You've already matched with {scanState.scannedName}!
+                You've already matched with {pageState.scannedName}!
               </Typography>
             </DialogContent>
             <DialogActions>
@@ -237,7 +250,7 @@ export default function ScanPage() {
           </>
         )}
 
-        {scanState.status === 'not_found' && (
+        {pageState.status === 'not_found' && (
           <>
             <DialogTitle>No Match</DialogTitle>
             <DialogContent>
