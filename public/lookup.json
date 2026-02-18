@@ -1,6 +1,22 @@
 {
-  "Alice Smith+Bob Jones": "Alice, Bob is the lead on the ML infrastructure track — worth a chat!",
-  "Bob Jones+Alice Smith": "Bob, Alice gave the opening keynote. She's looking for collaborators.",
-  "Alice Smith+Carol White": "Carol is the person Alice mentioned who works on distributed systems.",
-  "Carol White+Alice Smith": "Alice is one of the keynote speakers. Great person to connect with!"
+  "Alice Smith+Bob Jones": "You've been matched with Bob Jones!",
+  "Alice Smith+Carol White": "You've been matched with Carol White!",
+  "Alice Smith+David Brown": "You've been matched with David Brown!",
+  "Alice Smith+Eva Martinez": "You've been matched with Eva Martinez!",
+  "Bob Jones+Alice Smith": "You've been matched with Alice Smith!",
+  "Bob Jones+Carol White": "You've been matched with Carol White!",
+  "Bob Jones+David Brown": "You've been matched with David Brown!",
+  "Bob Jones+Eva Martinez": "You've been matched with Eva Martinez!",
+  "Carol White+Alice Smith": "You've been matched with Alice Smith!",
+  "Carol White+Bob Jones": "You've been matched with Bob Jones!",
+  "Carol White+David Brown": "You've been matched with David Brown!",
+  "Carol White+Eva Martinez": "You've been matched with Eva Martinez!",
+  "David Brown+Alice Smith": "You've been matched with Alice Smith!",
+  "David Brown+Bob Jones": "You've been matched with Bob Jones!",
+  "David Brown+Carol White": "You've been matched with Carol White!",
+  "David Brown+Eva Martinez": "You've been matched with Eva Martinez!",
+  "Eva Martinez+Alice Smith": "You've been matched with Alice Smith!",
+  "Eva Martinez+Bob Jones": "You've been matched with Bob Jones!",
+  "Eva Martinez+Carol White": "You've been matched with Carol White!",
+  "Eva Martinez+David Brown": "You've been matched with David Brown!"
 }
