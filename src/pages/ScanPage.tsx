@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useZxing } from 'react-zxing'
+import type { Result } from '@zxing/library'
 import { useNavigate } from 'react-router-dom'
 import { useUserName } from '../hooks/useUserName'
 
@@ -23,11 +24,11 @@ type ScanState =
   | { status: 'not_found' }
   | { status: 'error'; message: string }
 
-async function lookupPair(myId: string, scannedId: string): Promise<string | null> {
+async function lookupPair(myName: string, scannedName: string): Promise<string | null> {
   const res = await fetch(`${import.meta.env.BASE_URL}lookup.json`)
   if (!res.ok) throw new Error('Failed to load lookup table')
   const table: Record<string, string> = await res.json()
-  return table[`${myId}+${scannedId}`] ?? null
+  return table[`${myName}+${scannedName}`] ?? null
 }
 
 export default function ScanPage() {
@@ -37,12 +38,13 @@ export default function ScanPage() {
   const [paused, setPaused] = useState(false)
 
   const onDecodeResult = useCallback(
-    async (result: string) => {
+    async (result: Result) => {
       if (paused) return
       setPaused(true)
       setScanState({ status: 'loading' })
       try {
-        const value = await lookupPair(userName ?? '', result)
+        const scannedName = result.getText()
+        const value = await lookupPair(userName ?? '', scannedName)
         setScanState(value !== null ? { status: 'result', value } : { status: 'not_found' })
       } catch (err) {
         setScanState({
@@ -58,7 +60,7 @@ export default function ScanPage() {
     paused,
     onDecodeResult,
     onError: (err) => {
-      // ZXing fires this on every frame that has no QR code — filter out noise
+      // ZXing fires this on every frame with no QR code — filter out noise
       if (err instanceof Error && err.message.includes('No MultiFormat')) return
       console.warn('Scanner error:', err)
     },
@@ -90,17 +92,19 @@ export default function ScanPage() {
 
       <Box position="relative" sx={{ borderRadius: 2, overflow: 'hidden', bgcolor: 'black' }}>
         <video
-          ref={ref}
+          ref={ref as React.RefObject<HTMLVideoElement>}
           style={{ width: '100%', display: 'block' }}
         />
         {scanState.status === 'loading' && (
           <Box
-            position="absolute"
-            inset={0}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            bgcolor="rgba(0,0,0,0.5)"
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'rgba(0,0,0,0.5)',
+            }}
           >
             <CircularProgress sx={{ color: 'white' }} />
           </Box>
