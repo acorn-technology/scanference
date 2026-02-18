@@ -45,8 +45,9 @@ export default function HomePage() {
     return (
       <Container maxWidth="sm">
         <Box display="flex" flexDirection="column" alignItems="center" gap={3} pt={8}>
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            Scanference
+          <Box component="img" src={`${import.meta.env.BASE_URL}logo.png`} alt="Acorn Technology" sx={{ height: 56, mb: 2 }} />
+          <Typography variant="h4" component="h1" fontWeight="bold" textAlign="center">
+            Granada Conference 2026
           </Typography>
           <Typography variant="body1" color="text.secondary" textAlign="center">
             Select your name to get your personal QR code.
@@ -62,6 +63,7 @@ export default function HomePage() {
               <TextField
                 {...params}
                 label="Search your name"
+                sx={{ bgcolor: 'white', borderRadius: 1 }}
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
@@ -89,18 +91,19 @@ export default function HomePage() {
           >
             {editing ? 'Save' : "Let's go"}
           </Button>
+
         </Box>
       </Container>
     )
   }
 
   return (
-    <Container maxWidth="sm">
-      <Box display="flex" flexDirection="column" alignItems="center" gap={4} pt={6} pb={4}>
-        <Typography variant="h4" component="h1" fontWeight="bold">
-          Scanference
-        </Typography>
-
+    <>
+      <Box sx={{ position: 'fixed', top: 16, left: 16 }}>
+        <Box component="img" src={`${import.meta.env.BASE_URL}logo.png`} alt="Acorn Technology" sx={{ height: 37 }} />
+      </Box>
+      <Container maxWidth="sm">
+      <Box display="flex" flexDirection="column" alignItems="center" gap={4} pt={12} pb={4}>
         <Box display="flex" alignItems="center" gap={1}>
           <Typography variant="h6">{name}</Typography>
           <Tooltip title="Change name">
@@ -133,7 +136,9 @@ export default function HomePage() {
         >
           Scan Someone
         </Button>
+
       </Box>
     </Container>
+    </>
   )
 }
